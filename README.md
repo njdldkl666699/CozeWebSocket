@@ -70,6 +70,7 @@ Before getting started, ensure you have the following prerequisites:
    - Launch the QPYcom debugging tool.
    - Connect the data cable to the computer.
    - Press the **PWRKEY** button on the development board to power on the device.
+   - Copy `usr/secret.example.json` to `usr/secret.json`, fill in `bot_id` and `coze_token`, and configure `audio_upload_url`/`audio_upload_token` if user-audio upload is needed.
    - Follow the [instructions](https://developer.quectel.com/doc/quecpython/Getting_started/en/4G/first_python.html#PC与模组间的文件传输) to import all files from the `code` folder into the module's file system, preserving the directory structure.
 
 4. **Run the Application:**

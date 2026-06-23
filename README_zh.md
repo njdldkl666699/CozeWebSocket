@@ -72,6 +72,7 @@ QuecPython 推出了Coze 平台 websocket quecpython 接入解决方案。该方
    - 启动 QPYcom 调试工具。
    - 将数据线连接到计算机。
    - 按下开发板上的 **PWRKEY** 按钮启动设备。
+   - 将 `usr/secret.example.json` 复制为 `usr/secret.json`，填写 `bot_id`、`coze_token`，如需上传用户音频再填写 `audio_upload_url`、`audio_upload_token` 等字段。
    - 按照[说明](https://developer.quectel.com/doc/quecpython/Getting_started/zh/4G/first_python.html#PC与模组间的文件传输)将 `code` 文件夹中的所有文件导入到模块的文件系统中，保留目录结构。
 
 4. **运行应用程序：**

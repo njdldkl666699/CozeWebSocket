@@ -1,84 +1,98 @@
-
 import audio
 import G711
+from usr import logging
 
-singleton_media_obj  = None
+LOGGER = logging.getLogger("media")
 
-def singleton_media(name, type):
-    global singleton_media_obj
-    if singleton_media_obj is None:
-        singleton_media_obj = media(name, type)
-        return singleton_media_obj
+media = None
 
-    if singleton_media_obj.is_idle():
-        print('{} is using media'.format(singleton_media_obj.name))
+
+def singleton_media(name: str, media_type: int):
+    global media
+    if media is None:
+        media = Media(name, media_type)
+        return media
+
+    if not media.is_idle():
+        LOGGER.warn("{} is using media".format(media.name))
         return None
-    else:
-        singleton_media_obj.set_media_config(name, type)
-        return singleton_media_obj
 
-class media:
+    media.set_media_config(name, media_type)
+    return media
+
+
+def release_singleton_media() -> None:
+    global media
+    if media is None:
+        return
+    if not media.is_idle():
+        media.stop()
+    media = None
+
+
+class Media:
     MEDIA_TYPE_AUDIO = 1
     MEDIA_TYPE_PCM = 2
     MEDIA_TYPE_RECORD = 3
     MEDIA_TYPE_PCMA = 4
 
-    def __init__(self, name, type):
+    def __init__(self, name: str, media_type: int) -> None:
         self.name = name
-        self.type = type
+        self.type = media_type
         self.pcm = None
         self.pcma = None
         self.audio = audio.Audio(0)
         self.audio.set_pa(29)
-    def set_media_config(self, name, type):
+
+    def set_media_config(self, name: str, media_type: int) -> None:
         self.name = name
-        self.type = type
+        self.type = media_type
 
-    def is_idle(self):
-        if self.pcma:
-            return False
-        return True
+    def is_idle(self) -> bool:
+        return bool(self.pcma)
 
-    def start(self):
-        if  self.type == self.MEDIA_TYPE_PCMA:
+    def start(self) -> None:
+        if self.type == self.MEDIA_TYPE_PCMA:
             self.pcm = audio.Audio.PCM(1, 1, 8000, 2, 1, 5)
             self.pcma = G711(self.pcm)
         else:
-            raise('unkown audio type')
+            raise ValueError("unknown audio type")
 
-    def stop(self):
+    def stop(self) -> None:
         if self.type == self.MEDIA_TYPE_PCMA:
             if self.pcma:
                 del self.pcma
-                self.g711 = None
+                self.pcma = None
                 self.pcm.close()
                 del self.pcm
                 self.pcm = None
         else:
-            raise('wrong audio type')
+            raise ValueError("wrong audio type")
         self.name = None
         self.type = None
 
-    def pcma_read(self):
-       #read = self.pcma.read(0)
-        #print('read: {}'.format(read))
-        #return read
+    def pcma_read(self) -> bytes:
+        if not self.pcma:
+            return b""
         return self.pcma.read(0)
-    
-    def pcma_write(self, payload):
-       # print('write: {}'.format(payload))
-        return self.pcma.write(payload, 0)
-             
 
-    def set_volume(self, value):
+    def pcma_write(self, payload: bytes) -> int:
+        if not self.pcma:
+            return 0
+        return self.pcma.write(payload, 0)
+
+    def set_volume(self, value: int) -> int:
+        if not self.pcm:
+            return 0
         if self.type == self.MEDIA_TYPE_PCMA:
             return self.pcm.setVolume(value)
         else:
-            raise('wrong audio type')
+            raise ValueError("wrong audio type")
 
-    def get_volume(self):
+    def get_volume(self) -> int:
+        if not self.pcm:
+            return 0
         if self.type == self.MEDIA_TYPE_PCMA:
             return self.pcm.getVolume()
         else:
-            raise('wrong audio type')
-        
+            raise ValueError("wrong audio type")
